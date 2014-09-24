@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<vehicle type="MRbogballeM3Wplus">
+	<annotation>Calamarain</annotation>
+    <name>
+        <en>MR Bogballe M3W plus</en>
+        <de>MR Bogballe M3W plus</de>
+    </name>
+    <typeDesc>
+        <en>MR Bogballe</en>
+        <de>MR Bogballe</de>
+    </typeDesc>
+    <description></description>
+    <filename>Bogballe_M3W.i3d</filename>
+	
+	<realFillingPowerConsumption>0</realFillingPowerConsumption>
+	<realWorkingPowerConsumption>15</realWorkingPowerConsumption>
+	
+	<realSprayingReferenceSpeed>10</realSprayingReferenceSpeed> <!-- km/h -->
+	<realWorkingSpeedLimit>15</realWorkingSpeedLimit> <!-- above that, the fertilizer spread is not uniform -->
+
+	<cuttingAreas count="1">
+        <cuttingArea1 startIndex="0|9|2|0" widthIndex="0|9|2|1" heightIndex="0|9|2|2" />
+    </cuttingAreas>	
+	
+	<!-- get a stylish bow with best MP-Performance -->
+	<cuttingAreasBow count="10">
+		<!-- left -->
+        <cuttingArea1 startIndex="0|9|0|0|0" widthIndex="0|9|0|0|1" heightIndex="0|9|0|0|2" minStartX="6" minHeightX="5.7" minHeightZ="-1.42" />
+		<cuttingArea2 startIndex="0|9|0|0|2" widthIndex="0|9|0|1|0" heightIndex="0|9|0|1|1" minHeightX="5.42" minHeightZ="-2.48" />
+		<cuttingArea3 startIndex="0|9|0|1|1" widthIndex="0|9|0|2|0" heightIndex="0|9|0|2|1" minHeightX="4.69" minHeightZ="-3.72" />
+		<cuttingArea4 startIndex="0|9|0|2|1" widthIndex="0|9|0|3|0" heightIndex="0|9|0|3|1" minHeightX="3.02" minHeightZ="-5.11" />
+		<cuttingArea5 startIndex="0|9|0|3|1" widthIndex="0|9|0|4|0" heightIndex="0|9|0|4|1" minHeightX="1.11" minHeightZ="-6" />	
+		<!-- right -->
+        <cuttingArea6 startIndex="0|9|1|0|0" widthIndex="0|9|1|0|1" heightIndex="0|9|1|0|2" minStartX="-6" minHeightX="-5.7" minHeightZ="-1.42" />
+		<cuttingArea7 startIndex="0|9|1|0|2" widthIndex="0|9|1|1|0" heightIndex="0|9|1|1|1" minHeightX="-5.42" minHeightZ="-2.48" />
+		<cuttingArea8 startIndex="0|9|1|1|1" widthIndex="0|9|1|2|0" heightIndex="0|9|1|2|1" minHeightX="-4.69" minHeightZ="-3.72" />
+		<cuttingArea9 startIndex="0|9|1|2|1" widthIndex="0|9|1|3|0" heightIndex="0|9|1|3|1" minHeightX="-3.02" minHeightZ="-5.11" />
+		<cuttingArea10 startIndex="0|9|1|3|1" widthIndex="0|9|1|4|0" heightIndex="0|9|1|4|1" minHeightX="-1.11" minHeightZ="-6" />
+    </cuttingAreasBow>	
+
+	<size width="4.0" length="4.0" lengthOffset="0" widthOffset="0" />
+	
+	<attacherJoint index="0>0|12" jointType="implement" fixedRotation="false" topReferenceNode="0>0|12|0" upperRotationOffset="0" lowerRotationOffset="0" lowerDistanceToGround="0.3" upperDistanceToGround="1.25" pallet="4" />
+
+	<implementLinks>
+		<powerShaft manualAttach="false" index="0>0|7|0" part="0>0|7|0|0" fixPoint="0>0|7|0|0|0" />
+	</implementLinks>
+
+    <fillTypes fillTypes="fertilizer"/>
+	<capacity>4075</capacity>
+    <startFillLevel>0</startFillLevel>
+	<fillLitersPerSecond>320</fillLitersPerSecond>
+
+    <sprayParticleSystem file="ParticleSystem.i3d" />
+	<sprayValves>
+        <sprayValve index="0|8" />
+    </sprayValves>
+    <sprayUsages>
+        <sprayUsage fillType="fertilizer" litersPerSecond="1" />
+    </sprayUsages>
+    <spraySound file="$data/vehicles/tools/sprayer.wav" pitchOffset="1" volume="1"/>	
+	
+	<allowFillFromAir value="true" />
+	<allowTipDischarge value="false" />
+	<needsLowering value="false" />
+	<maxSpeedLevel value="2"/>
+    <isDefaultLowered value="false"/>
+	<needsActivation value="true" />
+
+    <fillPlanes>
+        <fillPlane type="fertilizer">
+            <node index="0|3">
+				<key time="0" y="0.2034" scale="0.185 0.01 0.185"/>
+				<key time="0.3004" y="0.59555" scale="0.8 1.2 0.85"/>
+				<key time="0.3723" y="0.94692" scale="1.4 1.5 0.97"/>
+				<key time="0.4183" y="1.178" scale="1.42 2 1.15"/>
+				<key time="1" y="1.94503" scale="1.42 2 1.15"/>
+            </node>
+			<node index="0|4">
+				<key time="0" y="0.2034" scale="0.185 0.01 0.185"/>
+				<key time="0.3004" y="0.59555" scale="0.8 1.2 0.85"/>
+				<key time="0.3723" y="0.94692" scale="1.4 1.5 0.97"/>
+				<key time="0.4183" y="1.178" scale="1.42 2 1.15"/>
+				<key time="1" y="1.94503" scale="1.42 2 1.15"/>
+            </node>
+        </fillPlane>
+    </fillPlanes>	
+	
+	<settings>
+		<steps count="3">
+			<step1 addCapacity="800" index="0|2" y="1.178" />
+			<step2 addCapacity="800" index="0|2|0" y="1.43065" />
+			<step3 addCapacity="800" index="0|2|0|0" y="1.68729" />
+		</steps>
+		<area step="3" minAreaWidth="6" maxAreaWidth="42" />
+		<literPerHa amt="50" min="100" current="350" max="600" price="0.1" multiplier="6" />
+	</settings>
+
+	<controlPanel detachPosition="0|10" index="0|10|0" highlight="0|10|0|0|0" xPos="0.71" yPos="0.375" />
+
+
+	<spinners count="2">
+		<spinner1 index="0|0" direction="1"/>
+		<spinner2 index="0|1" direction="-1"/>
+	</spinners>
+	
+	<components count="1">
+        <component1 centerOfMass="0 1.1 0.45" solverIterationCount="5" realMassWanted="0.79" />
+    </components>	
+	
+	 <Plane indexOpen="0|2|0|0|0|1" indexClose="0|2|0|0|0|0" />
+	 
+	<lightsaddon lightsStayOn="true">
+		<light type="dirLeft" index="0>0|2|0|5" />
+		<light type="dirLeft" index="0>0|11|13" />
+		<light type="dirRight" index="0>0|2|0|6" />
+		<light type="dirRight" index="0>0|11|14" />
+		<light type="brake" index="0>0|2|0|4" />
+		<light type="brake" index="0>0|11|12" />
+	</lightsaddon>
+	
+	<schemaOverlay file="$data/vehicles/schemas/implementSchema.png" fileSelected="$data/vehicles/schemas/implementSchemaSelected.png" width="0.5" height="0.5" attacherJointPosition="0 0"/>
+
+</vehicle>

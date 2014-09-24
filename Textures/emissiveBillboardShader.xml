@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<CustomShader version="2" classRequirement="">
+    <LodLevel startDistance="0">
+        <Parameters>
+        </Parameters>
+        <CodeInjections>
+
+            <CodeInjection position="GET_POSITION_VS">
+<![CDATA[
+// Note: this shader only is for emissive materials since the normals are not adjusted
+
+
+// This also work, but is slower ;)
+/*float3 dir = normalize(modelCameraPosition);
+float3 up = float3(0,1,0);
+float3 right = normalize(cross(up, dir));
+up = normalize(cross(dir, right));
+
+float3x3 billboardMat = float3x3(normalize(cross(up,dir)), up, dir);
+*/
+
+float3x3 billboardMat = modelViewMatrix;
+
+return float4(mul(In.position.xyz, billboardMat), 1);
+]]>
+            </CodeInjection>
+            <CodeInjection position="FINAL_POS_FS">
+<![CDATA[
+
+#if defined(ALPHA_BLENDED)
+float3 d = normalize(modelCameraPosition.xyz);
+oColor.a = lerp(0, oColor.a, saturate(d.z*6));
+
+#endif
+]]>
+            </CodeInjection>
+        </CodeInjections>
+    </LodLevel>
+</CustomShader>
