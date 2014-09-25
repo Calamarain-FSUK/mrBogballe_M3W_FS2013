@@ -14,3 +14,9 @@ TODO/Planned
 ============
  1). Add and remove weight depending on the fill level of the hopper.
  2). Adjust implement weight depending on capacity configuration.
+
+For Changelog of Git commits see changelog.txt
+ 
+Known Issues
+============
+Realistic weight seems heavy, slows the carrying vehicle down quite a bit.
