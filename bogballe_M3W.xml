@@ -105,7 +105,7 @@
 	</spinners>
 	
 	<components count="1">
-        <component1 centerOfMass="0 1.1 0.45" solverIterationCount="5" realMassWanted="0.79" />
+        <component1 centerOfMass="0 1.1 0.45" solverIterationCount="5" realMassWanted="0.55" />
     </components>	
 	
 	 <Plane indexOpen="0|2|0|0|0|1" indexClose="0|2|0|0|0|0" />
