@@ -3,15 +3,20 @@
 -- Specialization for BogballeM3W
 --
 -- @author:     Manuel Leithner
+-- @updater:    Jonathan McComb (Calamarain)
 -- @date:       25/10/10
--- @version:    v2.0
+-- @modified:   26/09/14
+-- @version:    v2.1
 -- @history:    v1.0 - initial implementation
 --              v2.0 - Converted to LS2011
+--              v2.1 - Updated for FS2013 & Fixed capacity setting issue
 --
 
 BogballeM3W = {};
 
 function BogballeM3W.prerequisitesPresent(specializations)
+    --Check that we have the 'Fillable' specialization, otherwise
+    --we can't contain any fertiliser to spread.
     return SpecializationUtil.hasSpecialization(Fillable, specializations);
 end;
 
@@ -116,13 +121,17 @@ function BogballeM3W:writeStream(streamId, connection)
 end;
 
 function BogballeM3W:mouseEvent(posX, posY, isDown, isUp, button)
+--unused function
 end;
 
 function BogballeM3W:keyEvent(unicode, sym, modifier, isDown)   
+--unused function
 end;
 
 function BogballeM3W:update(dt)
+    --Check if we are the active vehicle
     if self:getIsActive() then
+        --if we are active, we can respond to keypress events
         if self:getIsActiveForInput() then
             if InputBinding.hasEvent(InputBinding.bogballe_Increase_SprayWidth) then
                 self:changeSprayWidth(true);
@@ -150,7 +159,7 @@ function BogballeM3W:update(dt)
                 local joint = self.attacherVehicle.attacherJoints[implement.jointDescIndex];
                 
                 --We only need to scale the top arm if it exists - prevents errors when
-                --usedwith the Case Steiger, as their 3-point linkage is one unit that rises 
+                --used with the Case Steiger, as its 3-point linkage is one unit that rises 
                 --and all rotation/scaling happens further back in the Steiger vehicle
                 if topArm ~= nil then
                     self.attacherOptions.scale = joint.topArm.zScale;
@@ -170,15 +179,19 @@ end;
 
 function BogballeM3W:updateTick(dt)
     if self:getIsActive() then  
-        if self.isTurnedOn then             
+        if self.isTurnedOn then
+            --Calculate our spread rate
             local literPercentage = self.settings.literPerHa.current / self.settings.literPerHa.default;
             local widthPercentage = self.currentAreaWidth / self.settings.maxAreaWidth;
             local speedPercentage = math.max(1, ((self.lastSpeed * 3600) / 15));
             self.sprayLitersPerSecond[self.currentFillType] = self.settings.literPerHa.multiplier * literPercentage * widthPercentage * speedPercentage;
             
+            --Make the spinners rotate
             for k,spinner in pairs(self.spinners) do
                 rotate(spinner.node, 0, (-0.016 * spinner.direction)*dt, 0);
             end;
+            
+            --If we aren't going too fast update the spread area
             if self.speedViolationTimer > 0 then
                 -- create the stylish spreader bow with best performance
                 for k,cuttingArea in pairs(self.cuttingAreasBow) do
@@ -195,20 +208,22 @@ function BogballeM3W:updateTick(dt)
 end;
 
 function BogballeM3W:draw()
+    --Create temporary variables to store the keybindings
     local increasew = InputBinding.getKeyNamesOfDigitalAction(InputBinding.bogballe_Increase_SprayWidth);
     local decreasew = InputBinding.getKeyNamesOfDigitalAction(InputBinding.bogballe_Decrease_SprayWidth);
-    g_currentMission:addExtraPrintText(string.format(g_i18n:getText("bogballe_workingWidth"), self.currentAreaWidth, decreasew, increasew));
-    
     local increaseu = InputBinding.getKeyNamesOfDigitalAction(InputBinding.bogballe_Increase_Usage);
     local decreaseu = InputBinding.getKeyNamesOfDigitalAction(InputBinding.bogballe_Decrease_Usage);
-    g_currentMission:addExtraPrintText(string.format(g_i18n:getText("bogballe_literPerHa"), self.settings.literPerHa.current, decreaseu, increaseu));
-    
     local increasec = InputBinding.getKeyNamesOfDigitalAction(InputBinding.bogballe_Increase_Capacity);
     local decreasec = InputBinding.getKeyNamesOfDigitalAction(InputBinding.bogballe_Decrease_Capacity);
+    
+    --Show our keybindings and descriptions in the HelpBox
+    g_currentMission:addExtraPrintText(string.format(g_i18n:getText("bogballe_workingWidth"), self.currentAreaWidth, decreasew, increasew));
+    g_currentMission:addExtraPrintText(string.format(g_i18n:getText("bogballe_literPerHa"), self.settings.literPerHa.current, decreaseu, increaseu));
     g_currentMission:addExtraPrintText(string.format(g_i18n:getText("bogballe_capacity"), decreasec, increasec));   
 end;
 
 function BogballeM3W:onAttach()
+    -- When we get attached to a vehicle, hide the storage pallet that we were sitting on.
     setVisibility(self.attacherOptions.pallet, false);
     local x,y,z = getTranslation(self.attacherOptions.frame);
     setTranslation(self.attacherOptions.frame, x, self.attacherOptions.downY, z);
@@ -217,6 +232,7 @@ function BogballeM3W:onAttach()
 end;
 
 function BogballeM3W:onDetach()
+    -- When we get detached, make the pallet visible again so that have something to sit on
     setVisibility(self.attacherOptions.pallet, true);
     local x,y,z = getTranslation(self.attacherOptions.frame);
     setTranslation(self.attacherOptions.frame, x, self.attacherOptions.upY, z);
@@ -224,7 +240,8 @@ function BogballeM3W:onDetach()
     setRotation(self.attacherOptions.frame,0,0,0);
 end;
 
-function BogballeM3W:changeSprayWidth(increaseWidth, noEventSend) -- boolean    
+function BogballeM3W:changeSprayWidth(increaseWidth, noEventSend) -- boolean
+
     local stepWidth = self.settings.step;
     local changeDirection = 1;
     local oldWidth = self.currentAreaWidth;
@@ -277,13 +294,16 @@ function BogballeM3W:changeSprayWidth(increaseWidth, noEventSend) -- boolean
 end;
 
 function BogballeM3W:changeLiterPerHa(increaseLiter, noEventSend) -- boolean
+    --If boolean true is supplied to this function, increase the rate by one step
+    --otherwise reduce it by one step.    
     local step = self.settings.literPerHa.amt;
     local direction = 1;
     if not increaseLiter then
         direction = -1;
     end;
-    
+    --save the current setting for comparison later
     local oldLiterPerHa = self.settings.literPerHa.current;
+    --Calculate our new spread rate
     self.settings.literPerHa.current = Utils.clamp(self.settings.literPerHa.current + (direction * step), self.settings.literPerHa.min, self.settings.literPerHa.max);
     if oldLiterPerHa ~= self.settings.literPerHa.current then
         BogballeChangeLiterPerHaEvent.sendEvent(self, increaseLiter, noEventSend);
@@ -292,7 +312,7 @@ end;
 
 function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
     --If boolean true is supplied to this function, increase the capacity by one step
-    --or else reduce it by one step.  If we try to reduce by a step but still contain 
+    --otherwise reduce it by one step.  If we try to reduce by a step but still contain 
     --too much fertiliser, then do nothing.
     
     --################  DEBUG PRINTOUT ONLY  ############################
@@ -392,15 +412,19 @@ end;
 
 function BogballeM3W:loadFromAttributesAndNodes(xmlFile, key, resetVehicles)    
     if not resetVehicles then
+        --retrieve our settings from the vehicle.xml entry
         local currentStep = Utils.getNoNil(getXMLInt(xmlFile, key.."#currentStep"), self.currentStep);
         local areaWidth = Utils.getNoNil(getXMLInt(xmlFile, key.."#sprayWidth"), self.currentAreaWidth);         
         self.settings.literPerHa.current = Utils.getNoNil(getXMLFloat(xmlFile, key.."#literPerHa"), self.settings.literPerHa.current);
         self.settings.literPerHa.current = Utils.clamp(self.settings.literPerHa.current, self.settings.literPerHa.min, self.settings.literPerHa.max);
         
+        --Check if we need to change the capacity from the default
         local maxStep = self.currentStep;
         for i=currentStep, maxStep - 1 do
             self:changeCapacity(currentStep >= self.currentStep, true);
         end;
+        
+        --Check if we need to change the spread width from the default
         local currentState = self.currentAreaWidth < areaWidth;
         while self.currentAreaWidth ~= areaWidth do 
             self:changeSprayWidth(self.currentAreaWidth < areaWidth, true);
@@ -413,6 +437,7 @@ function BogballeM3W:loadFromAttributesAndNodes(xmlFile, key, resetVehicles)
 end;
 
 function BogballeM3W:getSaveAttributesAndNodes(nodeIdent)
+    --Save our current settings to the appropriate vehicle.xml entry
     local attributes = 'currentStep="'..tostring(self.currentStep)..'" sprayWidth="' .. tostring(self.currentAreaWidth) .. '" literPerHa="' .. tostring(self.settings.literPerHa.current) ..'"';
     return attributes, nil;
 end;
