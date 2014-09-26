@@ -6,11 +6,10 @@ The mod has been converted to be fully compatible with the 2013 version of Farmi
 
 Features
 ========
-The spread width is adjustable from 6m to 42m in 3m increments.
-The spread rate is adjustable from 100L/Hectare to 600L/Hectare in 50L increments.
-The capacity of the base unit is 1675L, each extension piece adds another 800L.
+The spread width is adjustable from 6m to 42m in 3m increments.<br />The spread rate is adjustable from 100L/Hectare to 600L/Hectare in 50L increments.<br />The capacity of the base unit is 1675L, each extension piece adds another 800L.
+
 
 TODO/Planned
 ============
- 1). Add and remove weight depending on the fill level of the hopper.
- 2). Adjust implement weight depending on capacity configuration.
+ 1. ~~Add and remove weight depending on the fill level of the hopper.~~ - _Not required - the MR engine adjusts the weight automatically._
+ 2. Adjust implement weight depending on capacity configuration. - _Not being implemented just yet - the spreader seems heavy enough at the minute..._
