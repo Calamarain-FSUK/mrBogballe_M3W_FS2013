@@ -321,14 +321,14 @@ function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
     local maxSteps = table.getn(self.steps);
     
     --Dump the variables to the log so we see what we started with
-    print("--------------------------------------");
-    print("oldStep".." = "..tostring(oldStep));
-    print("oldCapacity".." = "..tostring(oldCapacity));
-    print("newStep".." = "..tostring(newStep));
-    print("newCapacity".." = "..tostring(newCapacity));
-    print("tempFill".." = "..tostring(tempFill));
-    print("oldStep".." = "..tostring(oldStep));
-    print("maxSteps".." = "..tostring(maxSteps));
+    --print("--------------------------------------");
+    --print("oldStep".." = "..tostring(oldStep));
+    --print("oldCapacity".." = "..tostring(oldCapacity));
+    --print("newStep".." = "..tostring(newStep));
+    --print("newCapacity".." = "..tostring(newCapacity));
+    --print("tempFill".." = "..tostring(tempFill));
+    --print("oldStep".." = "..tostring(oldStep));
+    --print("maxSteps".." = "..tostring(maxSteps));
     
     --If we aren't increasing capacity change the step value
     --so that we add a negative number
@@ -336,30 +336,30 @@ function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
     --and  step 2 + -1 = 1
     if not increaseCapacity then
         stepChange = -1;
-        print("Called to DECREASE capacity");
+        --print("Called to DECREASE capacity");
     else
-        print("Called to INCREASE capacity");
+        --print("Called to INCREASE capacity");
     end;
     
     --calculate the new step value
     newStep = oldStep + stepChange
-    print("newStep".." = "..tostring(newStep));
+    --print("newStep".." = "..tostring(newStep));
     
     --check if we have a valid step, must not be below zero
     --and must not be more than the number of steps that
     --are defined in the settings section of the xml
     if newStep < 0 then
         newStep = 0;
-        print("wanted step too low. setting to "..tostring(newStep));
+        --print("wanted step too low. setting to "..tostring(newStep));
     elseif newStep > maxSteps then
         newStep = maxSteps;
-        print("wanted step too high. setting to "..tostring(newStep));
+        --print("wanted step too high. setting to "..tostring(newStep));
     else
-        print("wanted step is ok. ("..tostring(newStep)..")");
+        --print("wanted step is ok. ("..tostring(newStep)..")");
     end;
     
     --if we have reached this point we have a valid step - excellent!
-    print("-----------VALID STEP FOUND----------");
+    --print("-----------VALID STEP FOUND----------");
     --if we are DECREASING, we need to make sure that the
     --current fill level is less than the new capacity will be
     
@@ -378,15 +378,15 @@ function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
         else
             newCapacity = self.steps[newStep].maxCapacity;
         end;
-        print("tempFill".." = "..tostring(tempFill));
-        print("newCapacity".." = "..tostring(newCapacity));
+        --print("tempFill".." = "..tostring(tempFill));
+        --print("newCapacity".." = "..tostring(newCapacity));
         if newCapacity < tempFill then 
-            print("the new capacity is less than currently in the hopper!!");
-            print("abandoning the decrease!!");
+            --print("the new capacity is less than currently in the hopper!!");
+            --print("abandoning the decrease!!");
             newStep = oldStep;
         end
     else
-        print("increasing capacity - fill level will be less than the new capacity");
+        --print("increasing capacity - fill level will be less than the new capacity");
     end;
     
     --reset newCapacity to zero as we re-acquire the value later
@@ -394,8 +394,8 @@ function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
     
     if oldStep == newStep then
         --no change required so exit the function and do nothing
-        print("the step we want matches the step we started with");
-        print("abandoning the change!!");
+        --print("the step we want matches the step we started with");
+        --print("abandoning the change!!");
     else
         --get the new capacity information and show/hide the shapes as needed
         if stepChange == -1 then
@@ -421,9 +421,9 @@ function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
         self.capacity = newCapacity;
         self.realBaseCapacity = newCapacity;
         self.currentStep = newStep;
-        print("self.capacity".." = "..tostring(self.capacity));
-        print("self.realBaseCapacity".." = "..tostring(self.realBaseCapacity));
-        print("self.currentStep".." = "..tostring(self.currentStep));
+        --print("self.capacity".." = "..tostring(self.capacity));
+        --print("self.realBaseCapacity".." = "..tostring(self.realBaseCapacity));
+        --print("self.currentStep".." = "..tostring(self.currentStep));
         
         --change the fillplane animation to suit the new hopper shape
         local newYMax = self.originalMaxY;
@@ -440,8 +440,8 @@ function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
             end;    
         end;
     end;
-    print("--------------------------------------");
-    print("--------------------------------------");
+    --print("--------------------------------------");
+    --print("--------------------------------------");
 end;
 
 function BogballeM3W:loadFromAttributesAndNodes(xmlFile, key, resetVehicles)    
