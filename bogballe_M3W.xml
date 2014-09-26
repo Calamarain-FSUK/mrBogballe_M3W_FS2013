@@ -56,9 +56,9 @@
         <sprayValve index="0|8" />
     </sprayValves>
     <sprayUsages>
-        <sprayUsage fillType="fertilizer" litersPerSecond="1">
+        <sprayUsage fillType="fertilizer" litersPerSecond="1"/>
     </sprayUsages>
-    <spraySound file="$data/vehicles/tools/sprayer.wav" pitchOffset="1" volume="1">	
+    <spraySound file="$data/vehicles/tools/sprayer.wav" pitchOffset="1" volume="1"/>	
 
     <allowFillFromAir value="true" />
     <allowTipDischarge value="false" />

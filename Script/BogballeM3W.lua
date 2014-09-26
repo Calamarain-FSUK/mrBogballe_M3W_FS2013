@@ -407,6 +407,8 @@ function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
         print("self.capacity = "..self.capacity);
     end;
     print("finishing self.capacity = "..self.capacity);
+    --The moreRealistic engine uses a different variable for the capacity...
+    self.realBaseCapacity = self.capacity;
     self:setFillLevel(self.fillLevel, self.currentFillType);
 end;
 
