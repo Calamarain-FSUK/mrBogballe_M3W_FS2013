@@ -148,7 +148,13 @@ function BogballeM3W:update(dt)
             local implement = self.attacherVehicle:getImplementByObject(self);
             if implement ~= nil then
                 local joint = self.attacherVehicle.attacherJoints[implement.jointDescIndex];
-                self.attacherOptions.scale = joint.topArm.zScale;
+                
+                --We only need to scale the top arm if it exists - prevents errors when
+                --usedwith the Case Steiger, as their 3-point linkage is one unit that rises 
+                --and all rotation/scaling happens further back in the Steiger vehicle
+                if topArm ~= nil then
+                    self.attacherOptions.scale = joint.topArm.zScale;
+                end;
                 setJointFrame(joint.jointIndex, 0, self.attacherJoint.node);
                 self.attachingFinished = false;         
             end;        
@@ -285,43 +291,91 @@ function BogballeM3W:changeLiterPerHa(increaseLiter, noEventSend) -- boolean
 end;
 
 function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
+    --If boolean true is supplied to this function, increase the capacity by one step
+    --or else reduce it by one step.  If we try to reduce by a step but still contain 
+    --too much fertiliser, then do nothing.
     
+    --################  DEBUG PRINTOUT ONLY  ############################
+    --################  DEBUG PRINTOUT ONLY  ############################
+    print("Current Step     = "..self.currentStep);
+    print("Current Capacity = "..self.capacity);
+    --###################################################################
+    --###################################################################
+    
+    --Default to increasing capacity by one step
     local direction = 1;
-    local oldStep = self.currentStep;   
+    
+    --Save the current step in case we need it later
+    local oldStep = self.currentStep;
+    
+    --Check if we want to increase capacity, if not then set to -1 to decrease by one step
     if not increaseCapacity then
         direction = -1;
     end;
+    print("direction = "..direction);
+    --Change the current step value
     self.currentStep = self.currentStep + (1*direction);
+    
+    --If we try to increase past the maximum step value,
+    --set the current step to the maximum step value
     if self.currentStep > table.getn(self.steps) then
         self.currentStep = table.getn(self.steps);
     end;    
+    
+    --If we try to increase past the minimum step value, (always zero),
+    --set the current step to zero.
     if self.currentStep < 0 then
         self.currentStep = 0;
-    end;    
+    end;
+    
+    --If the new step is less than we started with then
+    --calculate the new capacity.
     if self.currentStep < oldStep then
         local newCapacity = self.capacity - self.steps[oldStep].addCapacity;
+        print("starting capacity = "..self.capacity);
+        print("newcapacity       = "..newCapacity);
+        --If the new capacity is less than the current fill level we can't be reduced
+        --so set the 'new' step value back to what we started with
         if self.fillLevel > newCapacity then
             self.currentStep = oldStep;
         end;
+    
+    --################  DEBUG PRINTOUT ONLY  ############################
+    --################  DEBUG PRINTOUT ONLY  ############################
+    else
+        local newCapacity = self.capacity + self.steps[oldStep].addCapacity;
+        print("starting capacity = "..self.capacity);
+        print("newcapacity       = "..newCapacity);
+    --###################################################################
+    --###################################################################
     end;
 
+    --If something has changed we need to update things
     if oldStep ~= self.currentStep then
-        -- only send event if something has been changed
+    
+        --Send the capacity change to other players
         BogballeChangeCapacityEvent.sendEvent(self, increaseCapacity, noEventSend);
+        
         if increaseCapacity then
+            --We are adding here so set the new capacity
             self.capacity = self.capacity + self.steps[self.currentStep].addCapacity;
+            --and show the appropriate shape within the .i3D
             setVisibility(self.steps[self.currentStep].index, true);
+            print("self.capacity = "..self.capacity);
         else
+            --We are reducing so set the new capacity
             self.capacity = self.capacity - self.steps[oldStep].addCapacity;
+            --and hide the old shape from the previous step
             setVisibility(self.steps[oldStep].index, false);
+            print("self.capacity = "..self.capacity);
         end;
         
+        --change the fillplane animation to suit the new capacity
         local newYMax = self.originalMaxY;
         if self.currentStep ~= 3 then
             newYMax = self.steps[self.currentStep+1].y;
         end;
-        
-        
+               
         local fillType = Fillable.fillTypeIntToName[Fillable.FILLTYPE_FERTILIZER];
         local minY = self.fillPlanes[fillType].nodes[1].animCurve.keyframes[1].y;
         for _, node in pairs(self.fillPlanes[fillType].nodes) do
@@ -330,8 +384,9 @@ function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
                 frame.time = (frame.y - minY) / (newYMax - minY);
             end;    
         end;
+        print("self.capacity = "..self.capacity);
     end;
-    
+    print("finishing self.capacity = "..self.capacity);
     self:setFillLevel(self.fillLevel, self.currentFillType);
 end;
 
