@@ -9,7 +9,7 @@
 -- @version:    v2.1
 -- @history:    v1.0 - initial implementation
 --              v2.0 - Converted to LS2011
---              v2.1 - Updated for FS2013 & Fixed capacity setting issue
+--              v2.1 - Updated for FS2013 & Fixed capacity setting issue with MoreRealistic Engine
 --
 
 BogballeM3W = {};
@@ -67,12 +67,12 @@ function BogballeM3W:load(xmlFile)
         local step = {};
         local name = string.format("vehicle.settings.steps.step" .. "%d", i);
         step.index = Utils.indexToObject(self.components, getXMLString(xmlFile, name .. "#index"));
-        step.addCapacity = Utils.getNoNil(getXMLFloat(xmlFile, name .. "#addCapacity"), 0);
         step.y = Utils.getNoNil(getXMLFloat(xmlFile, name .. "#y"), 0);
+        step.maxCapacity = Utils.getNoNil(getXMLFloat(xmlFile, name .. "#maxCapacity"), 0);
         table.insert(self.steps, step);
     end;
     self.currentStep = 3;
-
+    self.baseCapacity = Utils.getNoNil(getXMLInt(xmlFile, "vehicle.baseCapacity#value"), 1600);
     local numCuttingAreasBow = Utils.getNoNil(getXMLInt(xmlFile, "vehicle.cuttingAreasBow#count"), 0);
     self.cuttingAreasBow = {};
     for i=1, numCuttingAreasBow do
@@ -311,89 +311,124 @@ function BogballeM3W:changeLiterPerHa(increaseLiter, noEventSend) -- boolean
 end;
 
 function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
-    --If boolean true is supplied to this function, increase the capacity by one step
-    --otherwise reduce it by one step.  If we try to reduce by a step but still contain 
-    --too much fertiliser, then do nothing.
-    
-    --################  DEBUG PRINTOUT ONLY  ############################
-    --################  DEBUG PRINTOUT ONLY  ############################
-    print("Current Step     = "..self.currentStep);
-    print("Current Capacity = "..self.capacity);
-    --###################################################################
-    --###################################################################
-    
-    --Default to increasing capacity by one step
-    local direction = 1;
-    
-    --Save the current step in case we need it later
+    -- Declare and initialize variables
+    local stepChange = 1;
     local oldStep = self.currentStep;
+    local oldCapacity = self.capacity;
+    local newStep = 0;
+    local newCapacity = 0;
+    local tempFill = 0;
+    local maxSteps = table.getn(self.steps);
     
-    --Check if we want to increase capacity, if not then set to -1 to decrease by one step
+    --Dump the variables to the log so we see what we started with
+    print("--------------------------------------");
+    print("oldStep".." = "..tostring(oldStep));
+    print("oldCapacity".." = "..tostring(oldCapacity));
+    print("newStep".." = "..tostring(newStep));
+    print("newCapacity".." = "..tostring(newCapacity));
+    print("tempFill".." = "..tostring(tempFill));
+    print("oldStep".." = "..tostring(oldStep));
+    print("maxSteps".." = "..tostring(maxSteps));
+    
+    --If we aren't increasing capacity change the step value
+    --so that we add a negative number
+    --i.e. step 2 + 1 = 3
+    --and  step 2 + -1 = 1
     if not increaseCapacity then
-        direction = -1;
-    end;
-    print("direction = "..direction);
-    --Change the current step value
-    self.currentStep = self.currentStep + (1*direction);
-    
-    --If we try to increase past the maximum step value,
-    --set the current step to the maximum step value
-    if self.currentStep > table.getn(self.steps) then
-        self.currentStep = table.getn(self.steps);
-    end;    
-    
-    --If we try to increase past the minimum step value, (always zero),
-    --set the current step to zero.
-    if self.currentStep < 0 then
-        self.currentStep = 0;
-    end;
-    
-    --If the new step is less than we started with then
-    --calculate the new capacity.
-    if self.currentStep < oldStep then
-        local newCapacity = self.capacity - self.steps[oldStep].addCapacity;
-        print("starting capacity = "..self.capacity);
-        print("newcapacity       = "..newCapacity);
-        --If the new capacity is less than the current fill level we can't be reduced
-        --so set the 'new' step value back to what we started with
-        if self.fillLevel > newCapacity then
-            self.currentStep = oldStep;
-        end;
-    
-    --################  DEBUG PRINTOUT ONLY  ############################
-    --################  DEBUG PRINTOUT ONLY  ############################
+        stepChange = -1;
+        print("Called to DECREASE capacity");
     else
-        local newCapacity = self.capacity + self.steps[oldStep].addCapacity;
-        print("starting capacity = "..self.capacity);
-        print("newcapacity       = "..newCapacity);
-    --###################################################################
-    --###################################################################
+        print("Called to INCREASE capacity");
     end;
-
-    --If something has changed we need to update things
-    if oldStep ~= self.currentStep then
     
-        --Send the capacity change to other players
-        BogballeChangeCapacityEvent.sendEvent(self, increaseCapacity, noEventSend);
+    --calculate the new step value
+    newStep = oldStep + stepChange
+    print("newStep".." = "..tostring(newStep));
+    
+    --check if we have a valid step, must not be below zero
+    --and must not be more than the number of steps that
+    --are defined in the settings section of the xml
+    if newStep < 0 then
+        newStep = 0;
+        print("wanted step too low. setting to "..tostring(newStep));
+    elseif newStep > maxSteps then
+        newStep = maxSteps;
+        print("wanted step too high. setting to "..tostring(newStep));
+    else
+        print("wanted step is ok. ("..tostring(newStep)..")");
+    end;
+    
+    --if we have reached this point we have a valid step - excellent!
+    print("-----------VALID STEP FOUND----------");
+    --if we are DECREASING, we need to make sure that the
+    --current fill level is less than the new capacity will be
+    
+    if stepChange == -1 then
+        -- get the current fill level and store it.
+        tempFill = self.fillLevel;
         
-        if increaseCapacity then
-            --We are adding here so set the new capacity
-            self.capacity = self.capacity + self.steps[self.currentStep].addCapacity;
-            --and show the appropriate shape within the .i3D
-            setVisibility(self.steps[self.currentStep].index, true);
-            print("self.capacity = "..self.capacity);
-        else
-            --We are reducing so set the new capacity
-            self.capacity = self.capacity - self.steps[oldStep].addCapacity;
-            --and hide the old shape from the previous step
-            setVisibility(self.steps[oldStep].index, false);
-            print("self.capacity = "..self.capacity);
+        --If we have got a nil value, set it to zero
+        if tempFill == nil then
+            tempfill = 0;
         end;
         
-        --change the fillplane animation to suit the new capacity
+        --now we can get the capacity of the step that we want
+        if newStep == 0 then
+            newCapacity = self.baseCapacity;
+        else
+            newCapacity = self.steps[newStep].maxCapacity;
+        end;
+        print("tempFill".." = "..tostring(tempFill));
+        print("newCapacity".." = "..tostring(newCapacity));
+        if newCapacity < tempFill then 
+            print("the new capacity is less than currently in the hopper!!");
+            print("abandoning the decrease!!");
+            newStep = oldStep;
+        end
+    else
+        print("increasing capacity - fill level will be less than the new capacity");
+    end;
+    
+    --reset newCapacity to zero as we re-acquire the value later
+    newCapacity = 0;
+    
+    if oldStep == newStep then
+        --no change required so exit the function and do nothing
+        print("the step we want matches the step we started with");
+        print("abandoning the change!!");
+    else
+        --get the new capacity information and show/hide the shapes as needed
+        if stepChange == -1 then
+            if newStep == 0 then
+                --We have reached the minimum so set the capacity equal to the base value
+                --then hide the shape that belongs to the last step
+                newCapacity = self.baseCapacity;
+                setVisibility(self.steps[oldStep].index, false);
+            else
+                --We are reducing and not at the bottom so set the new capacity
+                --and hide the shape that belongs to the last step
+                newCapacity = self.steps[newStep].maxCapacity;
+                setVisibility(self.steps[oldStep].index, false);
+            end;
+        else
+            --We are increasing and not at the top so set the new capacity
+            --and show the shape that belongs to the wanted step
+            newCapacity = self.steps[newStep].maxCapacity;
+            setVisibility(self.steps[newStep].index, true);
+        end;
+        
+        --set our 'real' capacity variables and step value from our temporary ones
+        self.capacity = newCapacity;
+        self.realBaseCapacity = newCapacity;
+        self.currentStep = newStep;
+        print("self.capacity".." = "..tostring(self.capacity));
+        print("self.realBaseCapacity".." = "..tostring(self.realBaseCapacity));
+        print("self.currentStep".." = "..tostring(self.currentStep));
+        
+        --change the fillplane animation to suit the new hopper shape
         local newYMax = self.originalMaxY;
-        if self.currentStep ~= 3 then
-            newYMax = self.steps[self.currentStep+1].y;
+        if newStep ~= 3 then
+            newYMax = self.steps[newStep+1].y;
         end;
                
         local fillType = Fillable.fillTypeIntToName[Fillable.FILLTYPE_FERTILIZER];
@@ -404,12 +439,9 @@ function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
                 frame.time = (frame.y - minY) / (newYMax - minY);
             end;    
         end;
-        print("self.capacity = "..self.capacity);
     end;
-    print("finishing self.capacity = "..self.capacity);
-    --The moreRealistic engine uses a different variable for the capacity...
-    self.realBaseCapacity = self.capacity;
-    self:setFillLevel(self.fillLevel, self.currentFillType);
+    print("--------------------------------------");
+    print("--------------------------------------");
 end;
 
 function BogballeM3W:loadFromAttributesAndNodes(xmlFile, key, resetVehicles)    
