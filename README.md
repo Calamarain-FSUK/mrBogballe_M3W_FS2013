@@ -13,3 +13,5 @@ TODO/Planned
 ============
  1. ~~Add and remove weight depending on the fill level of the hopper.~~ - _Not required - the MR engine adjusts the weight automatically._
  2. Adjust implement weight depending on capacity configuration. - _Not being implemented just yet - the spreader seems heavy enough at the minute..._
+ 3. Additional language translations for help text and store details.
+ 4. 
