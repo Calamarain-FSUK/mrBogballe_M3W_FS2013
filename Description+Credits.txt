@@ -1,0 +1,27 @@
+Bogballe M3W Spreader
+
+The Bogballe M3W Fertiliser Spreader offers the modern farmer the ultimate in flexibility and economic usage.  This model has a spread with ranging from 6m to 42m in 3m increments to allow for maximum coverage with minimum overspill. 
+
+Rate of spread can be adjusted from 100l/hectare to 600l/hectare in 50l increments, and both the rate of spread and spread width are fully adjustable from the driver's seat.
+
+The hopper comprises a standard base, plus a maximum of three extension rings.  Starting from a capacity of 1675l, each ring will contain a further 800l for a total of 4075l.  A heavy duty tarpaulin cover is included to prevent the hopper contents getting wet in an unexpected downpour.
+
+
+Keybindings
+===========
+Decrease Capacity '['
+Increase Capacity ']'
+Decrease Spread Width 'N'
+Increase Spread Width 'J'
+Decrease Spread Rate 'M'
+Increase Spread Rate 'K'
+
+
+Credits & Acknowledgements
+==========================
+BeleuchtungV31 - Sven888b
+Bogballe M2W Original Model - SFM-Modding
+Bogballe M2W Original Scripts - Manuel Leithner
+ImplementLinks - Manuel Leithner/FS-UK Modteam
+Bogbale M3W Conversion (FS2011) - Kyosho
+FS2013/MoreRealistic Update - Calamarain
