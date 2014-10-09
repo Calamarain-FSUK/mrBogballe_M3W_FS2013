@@ -16,21 +16,17 @@ FS2013/MR Update: Calamarain]]>
 	<iconFilename>
 		<en>store_Bogballe_M3W.dds</en>
 	</iconFilename>
-    <version>1.0</version>
-	<extraSourceFiles>
-		<sourceFile filename="Script/BogballeChangeSprayWidthEvent.lua" />
-		<sourceFile filename="Script/BogballeChangeLiterPerHaEvent.lua" />
-		<sourceFile filename="Script/BogballeChangeCapacityEvent.lua" />
-    </extraSourceFiles>
-    <specializations>
+	<version>2.x</version>
+
+	<specializations>
 		<specialization name="BogballeM3W" className="BogballeM3W" filename="Script/BogballeM3W.lua" />
-		<specialization name="BogballePlane" className="BogballePlane" filename="Script/BogballePlane.lua"/>	
+		<specialization name="BogballePlane" className="BogballePlane" filename="Script/BogballePlane.lua"/>    
 		<specialization name="ImplementLinks" className="ImplementLinks" filename="Script/ImplementLinks.lua" />
 		<specialization name="beleuchtung" className="BEL3" filename="Script/beleuchtungV31.lua"/>
 	</specializations>
-    <vehicleTypes>
+	<vehicleTypes>
 		<type name="MRbogballeM3Wplus" className="Vehicle" filename="$dataS/scripts/vehicles/Vehicle.lua">
-	        <specialization name="realisticVehicle"/>
+			<specialization name="realisticVehicle"/>
 			
 			<specialization name="attachable" />
 			<specialization name="fillable" />
@@ -39,52 +35,52 @@ FS2013/MR Update: Calamarain]]>
 			<specialization name="BogballePlane" />
 			<specialization name="animatedVehicle" />
 			<specialization name="cylindered" />
-			<specialization name="ImplementLinks" />	
-			<specialization name="beleuchtung" />		
+			<specialization name="ImplementLinks" />    
+			<specialization name="beleuchtung" />       
 			
 			<specialization name="realisticSprayer"/>
-	    </type>
-    </vehicleTypes>
-    <storeItems>
-	    <storeItem>
-            <en>
-                <name>MR Bogballe M3W plus</name>
-                <description>
+		</type>
+	</vehicleTypes>
+	<storeItems>
+		<storeItem>
+			<en>
+				<name>MR Bogballe M3W plus</name>
+				<description>
 <![CDATA[
 Original Bogballe M2W Base: SFM-Modding
 Conversion to Bogballe M3W plus: Kyosho
 FS2013/MR Update: Calamarain]]>
-                </description>
+				</description>
 				<specs>
 <![CDATA[Working Width: 6m - 42m
 Weight: 790 Kgs
 Maximum Capacity: 4,075L
 
 Maintenance: %s /day]]>
-                </specs>
-            </en>
-            <rotation>0</rotation>
-            <image active="store_Bogballe_M3W.dds" brand="bogballe_Logo.dds"/>
-            <price>14700</price>
-            <xmlFilename>bogballe_M3W.xml</xmlFilename>
+				</specs>
+			</en>
+			<rotation>0</rotation>
+			<image active="store_Bogballe_M3W.dds" brand="bogballe_Logo.dds"/>
+			<price>14700</price>
+			<xmlFilename>bogballe_M3W.xml</xmlFilename>
 			<dailyUpkeep>15</dailyUpkeep>
 			<brand>$l10n_shopItemBrand_Bogballe</brand>
 			<machineType>fertilizerSpreaders</machineType>
-        </storeItem>
-    </storeItems>
-    <inputBindings>
-		<input name="bogballe_Increase_SprayWidth" 		  category="VEHICLE" key1="KEY_j" key2="" button="" device="0" mouse="" />
-		<input name="bogballe_Decrease_SprayWidth" 		  category="VEHICLE" key1="KEY_n" key2="" button="" device="0" mouse="" />
-		<input name="bogballe_Increase_Usage" 			  category="VEHICLE" key1="KEY_k" key2="" button="" device="0" mouse="" />
-		<input name="bogballe_Decrease_Usage" 			  category="VEHICLE" key1="KEY_m" key2="" button="" device="0" mouse="" />
-		<input name="bogballe_Increase_Capacity" 		  category="VEHICLE" key1="KEY_rightbracket" key2="" button="" device="0" mouse="" />
-		<input name="bogballe_Decrease_Capacity" 		  category="VEHICLE" key1="KEY_leftbracket" key2="" button="" device="0" mouse="" />
-		<input name="Bogballe_Plane" 										 key1="KEY_comma"         button="" />
+		</storeItem>
+	</storeItems>
+	<inputBindings>
+		<input name="bogballe_Increase_SprayWidth"        category="VEHICLE" key1="KEY_j" key2="" button="" device="0" mouse="" />
+		<input name="bogballe_Decrease_SprayWidth"        category="VEHICLE" key1="KEY_n" key2="" button="" device="0" mouse="" />
+		<input name="bogballe_Increase_Usage"             category="VEHICLE" key1="KEY_k" key2="" button="" device="0" mouse="" />
+		<input name="bogballe_Decrease_Usage"             category="VEHICLE" key1="KEY_m" key2="" button="" device="0" mouse="" />
+		<input name="bogballe_Increase_Capacity"          category="VEHICLE" key1="KEY_rightbracket" key2="" button="" device="0" mouse="" />
+		<input name="bogballe_Decrease_Capacity"          category="VEHICLE" key1="KEY_leftbracket" key2="" button="" device="0" mouse="" />
+		<input name="Bogballe_Plane"                                         key1="KEY_comma"         button="" />
 		<input name="BEL3LEFT"  key1="KEY_KP_1" button="" />
-        <input name="BEL3WARN"  key1="KEY_KP_2" button="" />
-        <input name="BEL3RIGHT" key1="KEY_KP_3" button="" />		
-    </inputBindings>
-	    <l10n>
+		<input name="BEL3WARN"  key1="KEY_KP_2" button="" />
+		<input name="BEL3RIGHT" key1="KEY_KP_3" button="" />        
+	</inputBindings>
+	<l10n>
 		<text name="bogballe_workingWidth">
 			<en>Working width: %sm (%s / %s)</en>
 		</text>
@@ -105,30 +101,30 @@ Maintenance: %s /day]]>
 		</text>
 		<text name="bogballe_Decrease_Usage">
 			<en>BogballeM3W Decrease Spread Rate</en>
-		</text>	
+		</text> 
 		<text name="bogballe_Increase_Capacity">
 			<en>BogballeM3W Increase Capacity</en>
-		</text>	
+		</text> 
 		<text name="bogballe_Decrease_Capacity">
 			<en>BogballeM3W Decrease Capacity</en>
-		</text>	
+		</text> 
 		<text name="Bogballe_Plane">
-            <en>Open/Close Cover</en>
-        </text>
+			<en>Open/Close Cover</en>
+		</text>
 		<text name="shopItemBrand_Bogballe">
-            <en>Bogballe</en>
-        </text>
+			<en>Bogballe</en>
+		</text>
 		<text name="BEL3LEFT">
-            <de>Blinker links</de>
-            <en>Turnlights Left</en>
-        </text>
-        <text name="BEL3RIGHT">
-            <de>Blinker rechts</de>
-            <en>Turnlights Right</en>
-        </text>
-        <text name="BEL3WARN">
-            <de>Warnblinker</de>
-            <en>Hazard Lights</en>
-        </text>
-    </l10n>
+			<de>Blinker links</de>
+			<en>Turnlights Left</en>
+		</text>
+		<text name="BEL3RIGHT">
+			<de>Blinker rechts</de>
+			<en>Turnlights Right</en>
+		</text>
+		<text name="BEL3WARN">
+			<de>Warnblinker</de>
+			<en>Hazard Lights</en>
+		</text>
+	</l10n>
 </modDesc>

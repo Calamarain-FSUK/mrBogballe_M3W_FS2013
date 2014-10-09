@@ -10,6 +10,7 @@
 -- @history:    v1.0 - initial implementation
 --              v2.0 - Converted to LS2011
 --              v2.1 - Updated for FS2013 & Fixed capacity setting issue with MoreRealistic Engine
+--              v2.x - Refactored
 --
 
 BogballeM3W = {};
@@ -21,10 +22,6 @@ function BogballeM3W.prerequisitesPresent(specializations)
 end;
 
 function BogballeM3W:load(xmlFile)
-
-    self.changeSprayWidth = SpecializationUtil.callSpecializationsFunction("changeSprayWidth");
-    self.changeCapacity = SpecializationUtil.callSpecializationsFunction("changeCapacity");
-    self.changeLiterPerHa = SpecializationUtil.callSpecializationsFunction("changeLiterPerHa");
 
     self.attacherOptions = {};
     self.attacherOptions.pallet = Utils.indexToObject(self.components, getXMLString(xmlFile, "vehicle.attacherJoint#pallet"));
@@ -95,29 +92,20 @@ end;
 function BogballeM3W:delete()
 end;
 
-function BogballeM3W:readStream(streamId, connection)
-    local currentStep = streamReadInt8(streamId);
-    local areaWidth = streamReadInt8(streamId);  
-    self.settings.literPerHa.current = streamReadInt16(streamId);
-    self.settings.literPerHa.current = Utils.clamp(self.settings.literPerHa.current, self.settings.literPerHa.min, self.settings.literPerHa.max);
-    
-    local maxStep = self.currentStep;
-    for i=currentStep, maxStep - 1 do
-        self:changeCapacity(currentStep >= self.currentStep, true);
-    end;
-    local currentState = self.currentAreaWidth < areaWidth;
-    while self.currentAreaWidth ~= areaWidth do 
-        self:changeSprayWidth(self.currentAreaWidth < areaWidth, true);
-        if self.currentAreaWidth >= self.settings.maxAreaWidth or self.currentAreaWidth <= self.settings.minAreaWidth or currentState ~= (self.currentAreaWidth < areaWidth) then
-            break;
-        end;
-    end;
-end;
-
 function BogballeM3W:writeStream(streamId, connection)
     streamWriteInt8(streamId, self.currentStep);
     streamWriteInt8(streamId, self.currentAreaWidth);
     streamWriteInt16(streamId, self.settings.literPerHa.current);   
+end;
+
+function BogballeM3W:readStream(streamId, connection)
+    local currentStep   = streamReadInt8(streamId);
+    local areaWidth     = streamReadInt8(streamId);  
+    local literPerHa    = streamReadInt16(streamId);
+    --
+    BogballeM3W.setLiterPerHa(self, literPerHa,  true);
+    BogballeM3W.setCapacity(  self, currentStep, true);
+    BogballeM3W.setSprayWidth(self, areaWidth,   true);
 end;
 
 function BogballeM3W:mouseEvent(posX, posY, isDown, isUp, button)
@@ -134,22 +122,17 @@ function BogballeM3W:update(dt)
         --if we are active, we can respond to keypress events
         if self:getIsActiveForInput() then
             if InputBinding.hasEvent(InputBinding.bogballe_Increase_SprayWidth) then
-                self:changeSprayWidth(true);
-            end;
-            if InputBinding.hasEvent(InputBinding.bogballe_Decrease_SprayWidth) then
-                self:changeSprayWidth(false);
-            end;
-            if InputBinding.hasEvent(InputBinding.bogballe_Increase_Capacity) then
-                self:changeCapacity(true);
-            end;
-            if InputBinding.hasEvent(InputBinding.bogballe_Decrease_Capacity) then
-                self:changeCapacity(false);
-            end;
-            if InputBinding.hasEvent(InputBinding.bogballe_Increase_Usage) then
-                self:changeLiterPerHa(true);
-            end;
-            if InputBinding.hasEvent(InputBinding.bogballe_Decrease_Usage) then
-                self:changeLiterPerHa(false);
+                BogballeM3W.setSprayWidth(self, self.currentAreaWidth + self.settings.step);
+            elseif InputBinding.hasEvent(InputBinding.bogballe_Decrease_SprayWidth) then
+                BogballeM3W.setSprayWidth(self, self.currentAreaWidth - self.settings.step);
+            elseif InputBinding.hasEvent(InputBinding.bogballe_Increase_Capacity) then
+                BogballeM3W.setCapacity(  self, self.currentStep + 1);
+            elseif InputBinding.hasEvent(InputBinding.bogballe_Decrease_Capacity) then
+                BogballeM3W.setCapacity(  self, self.currentStep - 1);
+            elseif InputBinding.hasEvent(InputBinding.bogballe_Increase_Usage) then
+                BogballeM3W.setLiterPerHa(self, self.settings.literPerHa.current + self.settings.literPerHa.amt);
+            elseif InputBinding.hasEvent(InputBinding.bogballe_Decrease_Usage) then
+                BogballeM3W.setLiterPerHa(self, self.settings.literPerHa.current - self.settings.literPerHa.amt);
             end;
         end;
 
@@ -240,25 +223,13 @@ function BogballeM3W:onDetach()
     setRotation(self.attacherOptions.frame,0,0,0);
 end;
 
-function BogballeM3W:changeSprayWidth(increaseWidth, noEventSend) -- boolean
-
-    local stepWidth = self.settings.step;
-    local changeDirection = 1;
-    local oldWidth = self.currentAreaWidth;
-    if not increaseWidth then
-        changeDirection = -1;
-    end;    
-    self.currentAreaWidth = self.currentAreaWidth + (stepWidth * changeDirection);
-    if self.currentAreaWidth >= self.settings.maxAreaWidth then
-        self.currentAreaWidth = self.settings.maxAreaWidth;
-    end;
-    if self.currentAreaWidth <= self.settings.minAreaWidth then
-        self.currentAreaWidth = self.settings.minAreaWidth;     
-    end;
+function BogballeM3W:setSprayWidth(newSprayWidth, noEventSend)
+    newSprayWidth = Utils.clamp(newSprayWidth, self.settings.minAreaWidth, self.settings.maxAreaWidth)
     
-    if self.currentAreaWidth ~= oldWidth then
-        BogballeChangeSprayWidthEvent.sendEvent(self, increaseWidth, noEventSend);
-        
+    if self.currentAreaWidth ~= newSprayWidth then
+        BogballeUpdateAttrsEvent.sendEvent(self, self.currentStep, newSprayWidth, self.settings.literPerHa.current, noEventSend)
+        --
+        self.currentAreaWidth = newSprayWidth
         local percentage = (self.currentAreaWidth - self.settings.minAreaWidth) / (self.settings.maxAreaWidth - self.settings.minAreaWidth);
         for k,cuttingArea in pairs(self.cuttingAreasBow) do 
             local minStartX = cuttingArea.minStartX;
@@ -293,179 +264,64 @@ function BogballeM3W:changeSprayWidth(increaseWidth, noEventSend) -- boolean
     end;
 end;
 
-function BogballeM3W:changeLiterPerHa(increaseLiter, noEventSend) -- boolean
-    --If boolean true is supplied to this function, increase the rate by one step
-    --otherwise reduce it by one step.    
-    local step = self.settings.literPerHa.amt;
-    local direction = 1;
-    if not increaseLiter then
-        direction = -1;
-    end;
-    --save the current setting for comparison later
-    local oldLiterPerHa = self.settings.literPerHa.current;
-    --Calculate our new spread rate
-    self.settings.literPerHa.current = Utils.clamp(self.settings.literPerHa.current + (direction * step), self.settings.literPerHa.min, self.settings.literPerHa.max);
-    if oldLiterPerHa ~= self.settings.literPerHa.current then
-        BogballeChangeLiterPerHaEvent.sendEvent(self, increaseLiter, noEventSend);
-    end;    
-end;
+function BogballeM3W:setLiterPerHa(newLiterPerHa, noEventSend)
+    newLiterPerHa = Utils.clamp(newLiterPerHa, self.settings.literPerHa.min, self.settings.literPerHa.max);
+    
+    if self.settings.literPerHa.current ~= newLiterPerHa then
+        BogballeUpdateAttrsEvent.sendEvent(self, self.currentStep, self.currentAreaWidth, newLiterPerHa, noEventSend)
+        --
+        self.settings.literPerHa.current = newLiterPerHa
+    end
+end
 
-function BogballeM3W:changeCapacity(increaseCapacity, noEventSend) -- boolean
-    -- Declare and initialize variables
-    local stepChange = 1;
-    local oldStep = self.currentStep;
-    local oldCapacity = self.capacity;
-    local newStep = 0;
-    local newCapacity = 0;
-    local tempFill = 0;
-    local maxSteps = table.getn(self.steps);
-    
-    --Dump the variables to the log so we see what we started with
-    --print("--------------------------------------");
-    --print("oldStep".." = "..tostring(oldStep));
-    --print("oldCapacity".." = "..tostring(oldCapacity));
-    --print("newStep".." = "..tostring(newStep));
-    --print("newCapacity".." = "..tostring(newCapacity));
-    --print("tempFill".." = "..tostring(tempFill));
-    --print("oldStep".." = "..tostring(oldStep));
-    --print("maxSteps".." = "..tostring(maxSteps));
-    
-    --If we aren't increasing capacity change the step value
-    --so that we add a negative number
-    --i.e. step 2 + 1 = 3
-    --and  step 2 + -1 = 1
-    if not increaseCapacity then
-        stepChange = -1;
-        --print("Called to DECREASE capacity");
-    else
-        --print("Called to INCREASE capacity");
-    end;
-    
-    --calculate the new step value
-    newStep = oldStep + stepChange
-    --print("newStep".." = "..tostring(newStep));
-    
-    --check if we have a valid step, must not be below zero
-    --and must not be more than the number of steps that
-    --are defined in the settings section of the xml
-    if newStep < 0 then
-        newStep = 0;
-        --print("wanted step too low. setting to "..tostring(newStep));
-    elseif newStep > maxSteps then
-        newStep = maxSteps;
-        --print("wanted step too high. setting to "..tostring(newStep));
-    else
-        --print("wanted step is ok. ("..tostring(newStep)..")");
-    end;
-    
-    --if we have reached this point we have a valid step - excellent!
-    --print("-----------VALID STEP FOUND----------");
-    --if we are DECREASING, we need to make sure that the
-    --current fill level is less than the new capacity will be
-    
-    if stepChange == -1 then
-        -- get the current fill level and store it.
-        tempFill = self.fillLevel;
-        
-        --If we have got a nil value, set it to zero
-        if tempFill == nil then
-            tempfill = 0;
-        end;
-        
-        --now we can get the capacity of the step that we want
-        if newStep == 0 then
-            newCapacity = self.baseCapacity;
-        else
-            newCapacity = self.steps[newStep].maxCapacity;
-        end;
-        --print("tempFill".." = "..tostring(tempFill));
-        --print("newCapacity".." = "..tostring(newCapacity));
-        if newCapacity < tempFill then 
-            --print("the new capacity is less than currently in the hopper!!");
-            --print("abandoning the decrease!!");
-            newStep = oldStep;
-        end
-    else
-        --print("increasing capacity - fill level will be less than the new capacity");
-    end;
-    
-    --reset newCapacity to zero as we re-acquire the value later
-    newCapacity = 0;
-    
-    if oldStep == newStep then
-        --no change required so exit the function and do nothing
-        --print("the step we want matches the step we started with");
-        --print("abandoning the change!!");
-    else
-        --get the new capacity information and show/hide the shapes as needed
-        if stepChange == -1 then
-            if newStep == 0 then
-                --We have reached the minimum so set the capacity equal to the base value
-                --then hide the shape that belongs to the last step
-                newCapacity = self.baseCapacity;
-                setVisibility(self.steps[oldStep].index, false);
-            else
-                --We are reducing and not at the bottom so set the new capacity
-                --and hide the shape that belongs to the last step
-                newCapacity = self.steps[newStep].maxCapacity;
-                setVisibility(self.steps[oldStep].index, false);
+function BogballeM3W:setCapacity(newCapacityStep, noEventSend)
+    newCapacityStep = Utils.clamp(newCapacityStep, 1, table.getn(self.steps))
+
+    if self.currentStep ~= newCapacityStep then
+        BogballeUpdateAttrsEvent.sendEvent(self, newCapacityStep, self.currentAreaWidth, self.settings.literPerHa.current, noEventSend)
+
+        -- Only allow change, when there is still room to contain the current fillLevel.
+        local currentFillLevel = Utils.getNoNil(self.fillLevel,0);
+        if currentFillLevel <= self.steps[newCapacityStep].maxCapacity then
+            self.currentStep = newCapacityStep
+
+            -- Update 3D-model's visibility
+            for i=1,table.getn(self.steps) do
+                setVisibility(self.steps[i].index, i <= self.currentStep)
+            end
+            
+            --
+            self.capacity           = self.steps[self.currentStep].maxCapacity;
+            self.realBaseCapacity   = self.steps[self.currentStep].maxCapacity;
+            
+            --change the fillplane animation to suit the new hopper shape
+            local newYMax = self.originalMaxY;
+            if self.currentStep < table.getn(self.steps) then
+                newYMax = self.steps[self.currentStep+1].y;
             end;
-        else
-            --We are increasing and not at the top so set the new capacity
-            --and show the shape that belongs to the wanted step
-            newCapacity = self.steps[newStep].maxCapacity;
-            setVisibility(self.steps[newStep].index, true);
-        end;
-        
-        --set our 'real' capacity variables and step value from our temporary ones
-        self.capacity = newCapacity;
-        self.realBaseCapacity = newCapacity;
-        self.currentStep = newStep;
-        --print("self.capacity".." = "..tostring(self.capacity));
-        --print("self.realBaseCapacity".." = "..tostring(self.realBaseCapacity));
-        --print("self.currentStep".." = "..tostring(self.currentStep));
-        
-        --change the fillplane animation to suit the new hopper shape
-        local newYMax = self.originalMaxY;
-        if newStep ~= 3 then
-            newYMax = self.steps[newStep+1].y;
-        end;
-               
-        local fillType = Fillable.fillTypeIntToName[Fillable.FILLTYPE_FERTILIZER];
-        local minY = self.fillPlanes[fillType].nodes[1].animCurve.keyframes[1].y;
-        for _, node in pairs(self.fillPlanes[fillType].nodes) do
-            node.animCurve.keyframes[table.getn(node.animCurve.keyframes)].y = newYMax;
-            for _,frame in pairs(node.animCurve.keyframes) do
-                frame.time = (frame.y - minY) / (newYMax - minY);
-            end;    
-        end;
-    end;
-    --print("--------------------------------------");
-    --print("--------------------------------------");
-end;
+                   
+            local fillType = Fillable.fillTypeIntToName[Fillable.FILLTYPE_FERTILIZER];
+            local minY = self.fillPlanes[fillType].nodes[1].animCurve.keyframes[1].y;
+            for _, node in pairs(self.fillPlanes[fillType].nodes) do
+                node.animCurve.keyframes[table.getn(node.animCurve.keyframes)].y = newYMax;
+                for _,frame in pairs(node.animCurve.keyframes) do
+                    frame.time = (frame.y - minY) / (newYMax - minY);
+                end;    
+            end;
+        end
+    end
+end
 
 function BogballeM3W:loadFromAttributesAndNodes(xmlFile, key, resetVehicles)    
     if not resetVehicles then
         --retrieve our settings from the vehicle.xml entry
         local currentStep = Utils.getNoNil(getXMLInt(xmlFile, key.."#currentStep"), self.currentStep);
-        local areaWidth = Utils.getNoNil(getXMLInt(xmlFile, key.."#sprayWidth"), self.currentAreaWidth);         
-        self.settings.literPerHa.current = Utils.getNoNil(getXMLFloat(xmlFile, key.."#literPerHa"), self.settings.literPerHa.current);
-        self.settings.literPerHa.current = Utils.clamp(self.settings.literPerHa.current, self.settings.literPerHa.min, self.settings.literPerHa.max);
-        
-        --Check if we need to change the capacity from the default
-        local maxStep = self.currentStep;
-        for i=currentStep, maxStep - 1 do
-            self:changeCapacity(currentStep >= self.currentStep, true);
-        end;
-        
-        --Check if we need to change the spread width from the default
-        local currentState = self.currentAreaWidth < areaWidth;
-        while self.currentAreaWidth ~= areaWidth do 
-            self:changeSprayWidth(self.currentAreaWidth < areaWidth, true);
-            if self.currentAreaWidth >= self.settings.maxAreaWidth or self.currentAreaWidth <= self.settings.minAreaWidth or currentState ~= (self.currentAreaWidth < areaWidth) then
-                break;
-            end;
-        end;
+        local areaWidth   = Utils.getNoNil(getXMLInt(xmlFile, key.."#sprayWidth"), self.currentAreaWidth);         
+        local literPerHa  = Utils.getNoNil(getXMLFloat(xmlFile, key.."#literPerHa"), self.settings.literPerHa.current);
+        --
+        BogballeM3W.setLiterPerHa(self, literPerHa,  true);
+        BogballeM3W.setCapacity(self,   currentStep, true);
+        BogballeM3W.setSprayWidth(self, areaWidth,   true);
     end; 
     return BaseMission.VEHICLE_LOAD_OK;
 end;
@@ -474,4 +330,66 @@ function BogballeM3W:getSaveAttributesAndNodes(nodeIdent)
     --Save our current settings to the appropriate vehicle.xml entry
     local attributes = 'currentStep="'..tostring(self.currentStep)..'" sprayWidth="' .. tostring(self.currentAreaWidth) .. '" literPerHa="' .. tostring(self.settings.literPerHa.current) ..'"';
     return attributes, nil;
+end;
+
+
+----------
+----------
+
+BogballeUpdateAttrsEvent = {};
+BogballeUpdateAttrsEvent_mt = Class(BogballeUpdateAttrsEvent, Event);
+
+InitEventClass(BogballeUpdateAttrsEvent, "BogballeUpdateAttrsEvent");
+
+function BogballeUpdateAttrsEvent:emptyNew()
+    local self = Event:new(BogballeUpdateAttrsEvent_mt);
+    self.className="BogballeUpdateAttrsEvent";
+    return self;
+end;
+
+function BogballeUpdateAttrsEvent:new(vehicle, newCapacityStep, newSprayWidth, newLiterPerHa)
+    local self = BogballeUpdateAttrsEvent:emptyNew()
+    self.vehicle            = vehicle;
+    self.newCapacityStep    = newCapacityStep;
+    self.newSprayWidth      = newSprayWidth;
+    self.newLiterPerHa      = newLiterPerHa;
+    return self;
+end;
+
+function BogballeUpdateAttrsEvent:writeStream(streamId, connection)
+    streamWriteInt32(streamId, networkGetObjectId(self.vehicle));   
+    streamWriteInt8(streamId,  self.newCapacityStep);
+    streamWriteInt8(streamId,  self.newSprayWidth);
+    streamWriteInt16(streamId, self.newLiterPerHa);
+end;
+
+function BogballeUpdateAttrsEvent:readStream(streamId, connection)
+    self.vehicle            = networkGetObject(streamReadInt32(streamId));
+    self.newCapacityStep    = streamReadInt8(streamId);
+    self.newSprayWidth      = streamReadInt8(streamId);
+    self.newLiterPerHa      = streamReadInt16(streamId);
+    --
+    self:run(connection);
+end;
+
+function BogballeUpdateAttrsEvent:run(connection)
+    if self.vehicle ~= nil then
+        BogballeM3W.setCapacity(  self.vehicle, self.newCapacityStep, true);
+        BogballeM3W.setSprayWidth(self.vehicle, self.newSprayWidth,   true);
+        BogballeM3W.setLiterPerHa(self.vehicle, self.newLiterPerHa,   true);
+        --
+        if not connection:getIsServer() then
+            g_server:broadcastEvent(BogballeUpdateAttrsEvent:new(self.vehicle, self.newCapacityStep, self.newSprayWidth, self.newLiterPerHa), nil, connection, self.object);
+        end;
+    end
+end;
+
+function BogballeUpdateAttrsEvent.sendEvent(vehicle, newCapacityStep, newSprayWidth, newLiterPerHa, noEventSend)
+    if noEventSend == nil or noEventSend == false then
+        if g_server ~= nil then
+            g_server:broadcastEvent(BogballeUpdateAttrsEvent:new(vehicle, newCapacityStep, newSprayWidth, newLiterPerHa), nil, nil, vehicle);
+        else
+            g_client:getServerConnection():sendEvent(BogballeUpdateAttrsEvent:new(vehicle, newCapacityStep, newSprayWidth, newLiterPerHa));
+        end;
+    end;
 end;
