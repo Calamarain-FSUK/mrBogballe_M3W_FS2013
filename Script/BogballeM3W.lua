@@ -2,15 +2,16 @@
 -- BogballeM3W
 -- Specialization for BogballeM3W
 --
--- @author:     Manuel Leithner
--- @updater:    Jonathan McComb (Calamarain)
--- @date:       25/10/10
--- @modified:   26/09/14
--- @version:    v2.1
+-- @original author: Manuel Leithner
+-- @updated by:      Jonathan McComb (Calamarain)
+-- @updated by:      Decker_MMIV
+-- @date written:    25/10/10
+-- @last modified:   10/10/14
+-- @version:    v2.2
 -- @history:    v1.0 - initial implementation
 --              v2.0 - Converted to LS2011
 --              v2.1 - Updated for FS2013 & Fixed capacity setting issue with MoreRealistic Engine
---              v2.x - Refactored
+--              v2.2 - Refactored
 --
 
 BogballeM3W = {};

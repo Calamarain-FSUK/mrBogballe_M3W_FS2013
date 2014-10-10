@@ -24,4 +24,4 @@ Bogballe M2W Original Model - SFM-Modding
 Bogballe M2W Original Scripts - Manuel Leithner
 ImplementLinks - Manuel Leithner/FS-UK Modteam
 Bogbale M3W Conversion (FS2011) - Kyosho
-FS2013/MoreRealistic Update - Calamarain
+FS2013/MoreRealistic Update - Calamarain with much appreciated assistance from Decker_MMIV
