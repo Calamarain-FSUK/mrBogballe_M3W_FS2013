@@ -379,7 +379,7 @@ function BogballeUpdateAttrsEvent:run(connection)
         BogballeM3W.setLiterPerHa(self.vehicle, self.newLiterPerHa,   true);
         --
         if not connection:getIsServer() then
-            g_server:broadcastEvent(BogballeUpdateAttrsEvent:new(self.vehicle, self.newCapacityStep, self.newSprayWidth, self.newLiterPerHa), nil, connection, self.object);
+            g_server:broadcastEvent(BogballeUpdateAttrsEvent:new(self.vehicle, self.newCapacityStep, self.newSprayWidth, self.newLiterPerHa), nil, connection, self.vehicle);
         end;
     end
 end;
