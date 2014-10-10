@@ -93,7 +93,7 @@
             <step3 index="0|2|0|0" y="1.68729" maxCapacity="4075" />
         </steps>
         <area step="3" minAreaWidth="6" maxAreaWidth="42" />
-        <literPerHa amt="50" min="100" current="350" max="600" price="0.1" multiplier="6" />
+        <literPerHa amt="50" min="100" current="350" max="600" price="0.1" multiplier="4" />
     </settings>
 
     <baseCapacity value="1675" />
