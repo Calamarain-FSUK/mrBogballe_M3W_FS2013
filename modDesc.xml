@@ -16,7 +16,7 @@ FS2013/MR Update: Calamarain & Decker_MMIV]]>
 	<iconFilename>
 		<en>store_Bogballe_M3W.dds</en>
 	</iconFilename>
-	<version>2.x</version>
+	<version>2.2</version>
 
 	<specializations>
 		<specialization name="BogballeM3W" className="BogballeM3W" filename="Script/BogballeM3W.lua" />
